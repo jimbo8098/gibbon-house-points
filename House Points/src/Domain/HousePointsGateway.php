@@ -5,25 +5,47 @@ use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 
-class HousePointsDomain extends QueryableGateway
+class HousePointsGateway extends QueryableGateway
 {
     use TableAware;
 
     private $searchableColumns = [];
+    private static $tableName = 'hpCategory';
 
-    public function queryCatergories(QueryCriteria $criteria)
+    /**
+     * Get a list of categories
+     * 
+     * @param QueryCriteria The criteria for the query
+     * @param bool If true, outputs for use with fromArray in MultipleInputTrait
+     *
+     * @return DataSet 
+     */
+    public function queryCategories(QueryCriteria $criteria,$select = false)
     {
         $this->searchableColumns = ['h.categoryName'];
         $query = $this
             ->newQuery()
             ->from('hpCategory as h')
             ->cols([
-                'h.catergoryID as categoryID',
-                'h.categoryName as categoryName',
                 'h.categoryOrder as categoryOrder',
                 'h.categoryType as categoryType',
                 'h.categoryPresets as categoryPresets'
             ]);
+
+        if($select == false)
+        {
+            $query->cols([
+                'h.categoryID as categoryID',
+                'h.categoryName as categoryName'
+            ]);
+        }
+        else
+        {
+            $query->cols([
+                'h.categoryID as value',
+                'h.categoryName as name',
+            ]);
+        }
         
         $criteria->addFilterRules([
             'categoryType' => function($query,$needle)
@@ -35,21 +57,51 @@ class HousePointsDomain extends QueryableGateway
             }
         ]);
 
-        $this->runQuery($query,$criteria);
+        return $this->runQuery($query,$criteria);
     }
 
-    public function queryOverallPoints(QueryCriteria $criteria)
+    public function queryOverallPoints(QueryCriteria $criteria,$yearId)
     {
         $this->searchableColumns = ['h.name'];
+
+        $pointStudentSelect = $this
+            ->newQuery()
+            ->from('hpPointStudent as ps')
+            ->cols([
+                'gibbonPerson.gibbonHouseID AS houseID',
+                'SUM(ps.points) AS total'
+            ])
+            ->innerJoin('gibbonPerson','ps.studentID = gibbonPerson.gibbonPersonID')
+            ->where('ps.yearID = :yearId')
+            ->groupBy(['gibbonPerson.gibbonHouseID'])
+            ->bindValue('yearID',$yearId)
+            ->calcFoundRows(false);
+
+        $pointHouseSelect = $this
+            ->newQuery()
+            ->from('hpPointHouse as ph')
+            ->cols([
+                'ph.houseID',
+                'SUM(ph.points) AS total'
+            ])
+            ->where('ph.yearID = :yearId')
+            ->groupBy(['ph.houseID'])
+            ->bindValue('yearId',$yearId)
+            ->calcFoundRows(false);
 
         $query = $this
             ->newQuery()
             ->from('gibbonHouse as h')
             ->cols([
+                'h.gibbonHouseID as gibbonHouseID',
                 'h.logo as houseLogo',
                 'h.name as houseName',
                 'COALESCE(pointStudent.total + pointHouse.total, pointStudent.total, pointHouse.total, 0) AS total'
-            ]);
+            ])
+            ->joinSubSelect('LEFT',$pointStudentSelect,'pointStudent','pointStudent.houseID = h.gibbonHouseID')
+            ->joinSubSelect('LEFT',$pointHouseSelect,'pointHouse','pointHouse.houseID = h.gibbonHouseID')
+            ->bindValue('yearID',$yearId)
+            ->calcFoundRows(false);
 
         $criteria->addFilterRules([
             'gibbonHouseId' => function($query,$needle)
@@ -59,7 +111,7 @@ class HousePointsDomain extends QueryableGateway
                     ->bindValue('gibbonHouseId',$needle);
             }
         ]);
-            
+        return $this->runQuery($query,$criteria);
     }
 
     public function queryStudents(QueryCriteria $criteria)

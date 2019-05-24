@@ -10,7 +10,7 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/manage.php")==
     $page->breadcrumbs->add(__('Manage points'));
 
     $modpath =  "./modules/".$_SESSION[$guid]["module"];
-    include $modpath."/function.php";
+    include $modpath."/moduleFunctions.php";
     include $modpath."/manage_function.php";
    
     ?>

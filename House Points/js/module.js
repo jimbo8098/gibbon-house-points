@@ -271,7 +271,7 @@ function updateCategoryPoints() {
         type: 'POST',
         dataType: 'json',
         success: function(data) {
-            // console.log(data);
+            
             var parent = $('#points').parent();
             $('#points').detach().remove();
 
