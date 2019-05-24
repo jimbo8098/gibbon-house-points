@@ -1,4 +1,6 @@
 <?php
+
+use Gibbon\Module\HousePoints\Domain\HousePointsGateway;
 // manage house point categories
 if (isActionAccessible($guid, $connection2,"/modules/House Points/overall.php")==FALSE) {
     //Acess denied
@@ -22,5 +24,19 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/overall.php")=
     $over = new over($guid, $connection2);
     $over->modpath = $modpath;
     
-    $over->mainform();
+    $output = $over->mainform();
+
+    var_dump($container);
+    $hpGateway = $container->get(HousePointsGateway::Class);
+    /*
+    $criteria = $hpGateway->newQueryCriteria()
+        ->sortBy('total','DESC');
+    $hp = $hpGateway->queryOverallPoints($criteria);
+    $table = DataTable::create('housepoints');
+    $table->addColumn('logo',__('Crest'));
+    $table->addColumn('name',__('House Name'));
+    $table->addColumn('total',__('Total'));
+    echo $table->render($hp);
+*/
+    echo $output;
 }

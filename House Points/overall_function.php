@@ -47,7 +47,8 @@ class over {
         $sql = "SELECT gibbonHouse.gibbonHouseID AS houseID,
             gibbonHouse.name AS houseName,
             gibbonHouse.logo as houseLogo,
-            COALESCE(pointStudent.total + pointHouse.total, pointStudent.total, pointHouse.total, 0) AS total
+            COALESCE(pointStudent.total + pointHouse.total, pointStudent.total, 
+            pointHouse.total, 0) AS total
             FROM gibbonHouse
             LEFT JOIN 
             (
