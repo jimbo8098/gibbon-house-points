@@ -28,7 +28,7 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/house_view.php
     $actions = $table->addActionColumn();
         $actions->format(function($row,$actions) {
             $actions->addAction('add',__('Add'))
-                ->setURL('Modules/House Points/house_award.php')
+                ->setURL('/modules/House Points/house_award.php')
                 ->addParam('houseID',$row['gibbonHouseID']);
         });
     echo $table->render($hp);
