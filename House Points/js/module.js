@@ -1,4 +1,5 @@
 // JavaScript Document
+/*
 function awardSave() {
     // save points awarded
     $.ajax({
@@ -16,6 +17,7 @@ function awardSave() {
         }
     });
 }
+*/
 
 function houseSave() {
     // save points awarded

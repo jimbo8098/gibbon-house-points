@@ -17,9 +17,10 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/student_award.
 
     echo "<h3>Award house points to students</h3>";
 
-    $form = Form::create('awardForm', '');
+    $form = Form::create('awardForm', $gibbon->session->get('absoluteURL') . '/index.php','GET');
     $form->setFactory(DatabaseFormFactory::create($pdo));
-    $form->addHiddenValue('submit', 'submit');
+    $form->addHiddenValue('q',$gibbon->session->get('address'));
+    $form->
     $form->addHiddenValue('teacherID', $this->teacherID);
 
     $row = $form->addRow();
@@ -38,7 +39,7 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/student_award.
 
     $row = $form->addRow();
         $row->addLabel('categoryName', __('Category'));
-        $row->addSelect('categoryName')
+        $row->addSelect('categoryId')
             ->fromDataSet($categories,'categoryID','categoryName')
             ->required()
             ->placeholder();
@@ -47,8 +48,8 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/student_award.
     $row = $form->addRow();
         $row->addLabel('points', __('Points'));
         $row->addTextField('points')
-            ->disabled()
-            ->placeholder(__('Select a category'));
+            //->disabled()
+            ->placeholder(__('Points to add'));
 
     $row = $form->addRow();
         $row->addLabel('reason', __('Reason'));
