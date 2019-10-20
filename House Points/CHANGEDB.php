@@ -40,3 +40,6 @@ INSERT INTO `hpCategory` (`categoryID`, `categoryName`, `categoryOrder`, `catego
 $count++;
 
 
+$sql[$count][0]="1.3.02" ; // version number
+$sql[$count][1]="" ;
+$count++;

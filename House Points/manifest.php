@@ -23,7 +23,7 @@ $description="Module to allow allocating and display of house points (modified b
 $entryURL="house_view.php" ;
 $type="Additional" ;
 $category="Learn" ;
-$version="1.3.01" ;
+$version="1.3.02" ;
 $author="Andy Statham" ;
 $url="http://rapid36.com" ;
 
