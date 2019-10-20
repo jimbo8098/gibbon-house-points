@@ -1,5 +1,4 @@
 <?php
-date_default_timezone_set('Asia/Hong_Kong');
 ini_set('error_log', 'logfile.txt');
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,3 +98,29 @@ function selectHouse($houseList) {
     echo "</select>";
 }
 ////////////////////////////////////////////////////////////////////////////////
+
+function showResultAlert($res)
+{
+    if(!is_null($res))
+    {
+        $divHTML = "";
+        switch($res)
+        {
+            case 0: $divHTML .= "<div class='success'>"; break;
+            default: $divHTML .= "<div class='error'>"; break;
+        }
+
+        switch($res)
+        {
+            case 0: $divHTML .= "Points added successfully!"; break;
+            default: $divHTML .= "An error occurred"; break;
+        }
+
+        $divHTML .= "</div>";
+        return $divHTML;
+    }
+    else
+    {
+        return "";
+    }
+}

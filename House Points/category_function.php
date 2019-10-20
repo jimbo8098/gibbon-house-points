@@ -1,197 +1,200 @@
 <?php
 use Gibbon\Forms\Form;
+use Gibbon\Module\HousePoints\Domain\HousePointsGateway;
 
-class cat {
-    
-    function __construct($guid, $connection2) {
-        $this->dbh = $connection2;
-        $this->guid = $guid;
-        
-        // check if add, edit or delete is required
-        $this->mode = getMode();
-        
-        $this->categoryID = $this->getCategoryID();
-        
-        if ($this->mode == 'delete') {
-            $ok = $this->categoryDelete($connection2);
-            if ($ok) {
-                $this->categoryID = 0;
-                $this->mode = '';
-            }
-        }
-        
-        if (isset($_POST['cancel'])) {
-            $this->categoryID = 0;
-            $this->mode = '';
-        }
-        
-        if (isset($_POST['save'])) {
-            $this->categorySave();
-            $this->mode = '';
-        }
-        $this->categoryList = readCategoryList($this->dbh);
-        
-    }
-    
-    
-    function formDefine() {
-        echo '<td style="width:100%" colspan=2>';
-
-        $form = Form::create('catform', '');
-        $form->addHiddenValue('categoryID', $this->categoryID);
-        $form->addHiddenValue('save', 'save');
-
-        $row = $form->addRow();
-            $row->addLabel('categoryName', __('Category Name'));
-            $row->addTextField('categoryName')->required()->maxLength(45)->setValue($this->categoryName);
-
-        $row = $form->addRow();
-            $row->addLabel('categoryType', __('Type'));
-            $row->addSelect('categoryType')->fromArray(array('House', 'Student'))->selected($this->categoryType);
-
-        $row = $form->addRow();
-            $row->addLabel('categoryPresets', __('Presets'))
-                ->description(__('Add preset comma-separated increments as Name: PointValue. Leave blank for unlimited.'))
-                ->description(__(' eg: ThingOne: 1, ThingTwo: 5, ThingThree: 10'));
-            $row->addTextArea('categoryPresets')->setRows(2)->setValue($this->categoryPresets);
-
-        $row = $form->addRow();
-            $row->addSubmit(__('Save'));
-
-        echo $form->getOutput();
-
-        echo '</td>';
-    }
-    
-    function mainform() {
-        $linkPath = $_SESSION[$this->guid]['absoluteURL'].'/index.php?q=/modules/'.$_SESSION[$this->guid]["module"].'/category.php';
-        $linkNew = $linkPath."&amp;mode=new";
-        $deleteIcon = $this->modpath."/images/delete.png";
-        $editIcon = $this->modpath."/images/edit.png";
-        
-        echo "<p>&nbsp;</p>";
-        echo "<p><a href='$linkNew'>Add new</a></p>";
-        // echo "<form name='catform' method='post' action='' />";
-            echo "<table style='width:100%;'>";
-                echo "<thead>";
-                    echo "<tr>";
-                        echo "<th>Category</th>";
-                        echo "<th>Action</th>";
-                    echo "</tr>";
-                echo "</thead>";
-
-                echo "<tbody>";
-                    if ($this->categoryList->rowCount() == 0 || $this->mode == 'new') {
-                        $this->categoryID = 0;
-                        $this->categoryName = '';
-                        $this->categoryType = 'House';
-                        $this->categoryPresets = '';
-                        $this->formDefine();
-                    }
-                    while ($row = $this->categoryList->fetch()) {
-                        $linkEdit = $linkPath.
-                            "&amp;categoryID=".$row['categoryID'].
-                            "&amp;mode=edit";
-                        $messageDelete = "WARNING All points associated with this category will be lost.  Delete ".$row['categoryName']."?";
-                        $linkDelete = "window.location = \"$linkPath&amp;categoryID=".$row['categoryID'].
-                                "&amp;mode=delete\"";
-                        echo "<tr>";   
-                            if (($this->mode == 'edit' && $row['categoryID'] == $this->categoryID)) {
-                                $this->categoryID = $row['categoryID'];
-                                $this->categoryName = $row['categoryName'];
-                                $this->categoryType = $row['categoryType'];
-                                $this->categoryPresets = $row['categoryPresets'];
-                                $this->formDefine();
-                            } else {
-                                echo "<td style='width:70%'>".$row['categoryName']."</td>";
-                                echo "<td style='width:30%;'>";
-                                    echo "<a href='$linkEdit'>Edit</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href='#' onclick='if (confirm(\"$messageDelete\")) $linkDelete'>Delete</a>";
-                                echo "</td>";
-
-                            }
-                        echo "</tr>";
-                    }
-                echo "</tbody>";
-            echo "</table>";
-        // echo "</form>";
-    }
-    
-    function categoryDelete() {
-        $data = array(
-            'categoryID' => $this->categoryID
-        );
-        $sql = "DELETE FROM hpCategory
-            WHERE categoryID = :categoryID";
-        $rs = $this->dbh->prepare($sql);
-        $rs->execute($data);
-    }
-    
-    function categorySave() {
-        $categoryID = isset($_POST['categoryID'])? $_POST['categoryID'] : '';
-        $categoryName = isset($_POST['categoryName'])? trim($_POST['categoryName']) : '';
-        $categoryType = isset($_POST['categoryType'])? $_POST['categoryType'] : '';
-        $categoryPresets = isset($_POST['categoryPresets'])? trim($_POST['categoryPresets']) : '';
-        
-        if ($categoryName === '') {
-            return;
-        }
-        // check if category exists
-        $data = array(
-            'categoryName' => $categoryName
-        );        
-        $sql = "SELECT categoryID
-            FROM hpCategory
-            WHERE categoryName = :categoryName";
-        $rs = $this->dbh->prepare($sql);
-        $rs->execute($data);
-        $ok = true;
-        if ($rs->rowCount() > 0) {
-            $row = $rs->fetch();
-            if ($row['categoryID'] != $categoryID) {
-                $ok = false;
-            }
-        }
-        
-        if ($ok) {
-            if ($categoryID > 0) {
-                $data = array(
-                    'categoryID' => $categoryID,
-                    'categoryName' => $categoryName,
-                    'categoryType' => $categoryType,
-                    'categoryPresets' => $categoryPresets,
-                );
-                $sql = "UPDATE hpCategory
-                    SET categoryName = :categoryName, categoryType=:categoryType, categoryPresets=:categoryPresets
-                    WHERE categoryID = :categoryID";
-            } else {
-                $data = array(
-                    'categoryName' => $categoryName,
-                    'categoryType' => $categoryType,
-                    'categoryPresets' => $categoryPresets,
-                );
-                $sql = "INSERT INTO hpCategory
-                    SET categoryName = :categoryName, categoryType=:categoryType, categoryPresets=:categoryPresets";
-            }
-            $rs = $this->dbh->prepare($sql);
-            $rs->execute($data);
-        }
-    }
-    
-    
-    
-    ////////////////////////////////////////////////////////////////////////////////
-    function getCategoryID() {
-        // check if parameter has been passed to current page
-        $categoryID = '';
-        if (isset($_POST['categoryID'])) {
-            $categoryID = $_POST['categoryID'];
-        } else {
-            if (isset($_GET['categoryID'])) {
-                $categoryID = $_GET['categoryID'];
-            }
-        }
-        return $categoryID;
-    }
-    ////////////////////////////////////////////////////////////////////////////////
-
+$mode = $_POST['mode'] ?? $_GET['mode'] ?? '';
+$categoryID = isset($_POST['categoryID'])? $_POST['categoryID'] : '';
+$categoryName = isset($_POST['categoryName'])? trim($_POST['categoryName']) : '';
+$categoryType = isset($_POST['categoryType'])? $_POST['categoryType'] : '';
+$categoryPresets = isset($_POST['categoryPresets'])? trim($_POST['categoryPresets']) : '';
+$categoryOrder = isset($_POST['categoryOrder'])?trim($_POST['categoryOrder']) : '';
+$returnTo = $_POST['returnTo'] ?? $_GET['returnTo'] ?? '';
+$result = 1; //Default fail
+if($categoryOrder > 0)
+{
+    $categoryOrder--; //Category order is zero based in dbso decrement the user-readable version
 }
+
+function cleanupCategoryOrder($conn)
+{
+    $sql = "SET @row_number = 0;
+    UPDATE hpCategory c
+    INNER JOIN (
+        SELECT
+            (@row_Number := @row_number + 1) - 1 as newCategoryOrder,
+            categoryID
+        FROM hpCategory
+        ORDER BY categoryOrder ASC, categoryID ASC
+    ) _c  ON _c.categoryID = c.categoryID
+    SET
+            c.categoryOrder = _c.newCategoryOrder
+    ;";
+    try
+    {
+        $stmnt = $conn->prepare($sql)->execute();
+    }
+    catch(PDOException $e)
+    {
+        throw $e;
+    }
+}
+
+switch($mode)
+{
+    case "edit":
+        if($categoryID != 0)
+        {
+            $hpGateway = $container->get(HousePointsGateway::Class);
+            $criteria = $hpGateway->newQueryCriteria()
+                ->filterBy('categoryID',$categoryID)
+                ->sortBy('categoryOrder','ASC');
+            $categories = $hpGateway->queryCategories($criteria,false,false)->toArray();
+            switch(sizeof($categories))
+            {
+                case 0: $result = 3; break;
+                case 1: 
+                    switch(strtolower($categoryOrder))
+                    {
+                        case "top":
+                            //Set the order to 0 then increment the others
+                            $categoryOrder = 0;
+                            $sql = "UPDATE hpCategory SET categoryOrder = categoryOrder + 1;";
+                            try{
+                                $connection2->prepare($sql)->execute();
+                            }
+                            catch(PDOException $e)
+                            {
+                                throw $e;
+                            }
+                            break;
+                        
+                        case "bottom":
+                            $highestCatOrdinal = $hpGateway->queryUsedCategoryOrders('DESC')->toArray()[0]['value'];
+                            $categoryOrder = $highestCatOrdinal + 1; //The ordinal becomes the next highest
+                            break;
+
+                        default:
+                            cleanupCategoryOrder($connection2);
+                            $cats = array_map(function($elem) {
+                                return $elem['value'];
+                            },$hpGateway->queryUsedCategoryOrders('ASC')->toArray());
+
+                            //Must make space for the new ordinal, otherwise leave the others be
+                            if(array_search($categoryOrder,$cats) != null)
+                            {
+                                echo "Something exists in this slot, moving up to make space";
+                                //When the next category ordinal is one more than the new ordinal 
+                                $sql = "UPDATE hpCategory SET categoryOrder = categoryOrder + 1 WHERE categoryOrder >= :categoryOrder";
+                                try{
+                                    $stmnt = $connection2->prepare($sql);
+                                    $stmnt->execute(['categoryOrder' => $categoryOrder]);
+                                }
+                                catch(PDOException $e)
+                                {
+                                    throw $e;
+                                }
+                            }
+                            break;
+                    }
+                    $sql = "
+                        UPDATE hpCategory
+                        SET
+                            categoryName = :categoryName,
+                            categoryType = :categoryType,
+                            categoryPresets = :categoryPresets,
+                            categoryOrder = :categoryOrder
+                        WHERE
+                            categoryID = :categoryID;";
+                    $sqlresult = null;
+                    try{
+                        $stmnt = $connection2->prepare($sql);
+                        $sqlresult = $stmnt->execute(array(
+                            'categoryID' => $categoryID,
+                            'categoryName' => $categoryName,
+                            'categoryType' => $categoryType,
+                            'categoryPresets' => $categoryPresets,
+                            'categoryOrder' => $categoryOrder
+                        ));
+                    }
+                    catch(PDOException $e)
+                    {
+                        throw $e;
+                    }
+                    
+                    switch($sqlresult)
+                    {
+                        case true: $result = 0; break; //fine
+                        case false: $result = 1; break; //error, couldn't find category
+                        default: $result = 1; break; //error
+                    }
+                    cleanupCategoryOrder($connection2); //Cleanup again just in case this has caused any weird gaps, particularly with the nudging
+                    break;
+                default: $result = 4; break;
+            }
+        }
+        else
+        {
+            $result = 2;
+        }
+        break;
+
+    case "add":
+        cleanupCategoryOrder($connection2);
+        if($categoryType != "House" && $categoryType != "Student") $result = 2;
+        $sql = "
+            INSERT INTO hpCategory
+            SET
+                categoryName = :categoryName,
+                categoryType = :categoryType,
+                categoryPresets = :categoryPresets
+            ";
+        try
+        {
+            $stmnt = $connection2->prepare($sql);
+            $stmnt->execute(array(
+                "categoryName" => $categoryName,
+                "categoryType" => $categoryType,
+                "categoryPresets" => $categoryPresets
+            ));
+            $result = 0;
+        }
+        catch(PDOException $e)
+        {
+            $result = 2;
+        }
+        break;
+
+    case "delete":
+        $sql = 'DELETE FROM hpCategory WHERE categoryID = :categoryID';
+        $stmnt = $connection2->prepare($sql);
+        $data = null;
+        try
+        {
+            $data = $stmnt->execute(array(
+                'categoryID' => $categoryID
+            ));
+        }
+        catch(PDOException $e)
+        {
+            $result = 2;
+        }
+        cleanupCategoryOrder($connection2);
+        break;
+
+    default:
+        $result = 3;
+        break;
+}
+
+switch($result)
+{
+    case 0: $resultTxt = "Success"; break;
+    case 1: $resultTxt = "Error"; break;
+    case 2: $resultTxt = "A database error occurred"; break;
+    case 3: $resultTxt = "The provided category couldn't be found";break;
+    case 4: $resultTxt = "Duplicate categories exist"; break; //Duplicate category IDs, should be covered by the DB PK
+    default: $resultTxt = "An unknown error occurred (" . $result . ")"; break;
+}
+echo "Result " . $result;
+//header('Location: ' . $returnTo . '&statusCode=' . $result . '&statusText=' . $resultTxt);
+?>

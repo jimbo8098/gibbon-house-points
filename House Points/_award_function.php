@@ -34,8 +34,9 @@ class pt {
             $row->addLabel('studentID', __('Student'));
             $row->addSelect('studentID')->fromArray($students)->required()->placeholder();
 
-        $highestAction = getHighestGroupedAction($this->guid, '/modules/House Points/award.php', $this->dbh);
+        $highestAction = getHighestGroupedAction($this->guid, '/modules/House Points/student_award.php', $this->dbh);
         $unlimitedPoints = ($highestAction == 'Award student points_unlimited');
+        var_dump($highestAction);
 
         $categories = array_reduce($this->categoryList->fetchAll(), function($group, $item) use ($unlimitedPoints) { 
             if (empty($item['categoryPresets']) && !$unlimitedPoints) return $group; 

@@ -1,21 +1,4 @@
 // JavaScript Document
-function awardSave() {
-    // save points awarded
-    $.ajax({
-        url: modpath + "/award_save_ajax.php",
-        data: {
-            formData: $('#awardForm').serialize()
-        },
-        type: 'POST',
-        success: function(data) {
-            console.log(data);
-            if (data !== '') {
-                $('#msg').html(data);
-                $('#submit').prop('disabled', true).css({'background-color': '#cccccc', 'color': 'gray'});
-            }
-        }
-    });
-}
 
 function houseSave() {
     // save points awarded
@@ -271,7 +254,7 @@ function updateCategoryPoints() {
         type: 'POST',
         dataType: 'json',
         success: function(data) {
-            // console.log(data);
+            
             var parent = $('#points').parent();
             $('#points').detach().remove();
 
