@@ -1,5 +1,8 @@
 CHANGELOG
 =========
+## v1.3.03
+- OOified forms and tables 
+- Moved presets to a subcategory due to AJAX limitations on new forms
 
 ## v1.3.02
 - Updated house point totals to reset with each school year

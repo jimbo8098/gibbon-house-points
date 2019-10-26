@@ -43,3 +43,9 @@ $count++;
 $sql[$count][0]="1.3.02" ; // version number
 $sql[$count][1]="" ;
 $count++;
+
+$sql[$count][0]="1.3.03";
+$sql[$count][1]="
+CREATE TABLE hpSubCategory(subCategoryID int PRIMARY KEY AUTO_INCREMENT,categoryID int NOT NULL,name varchar(500) NOT NULL,value int);end
+ALTER TABLE hpCategory DROP COLUMN categoryPresets;end
+";

@@ -17,27 +17,17 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/class_view.php
     $page->breadcrumbs->add(__('View points class'));
 
     $modpath =  "./modules/".$_SESSION[$guid]["module"];
+    $gibbonYearId = $gibbon->session->get('gibbonSchoolYearID');
     include $modpath."/moduleFunctions.php";
-    include $modpath."/classpoints_function.php";
    
-    ?>
-    <script>
-        var modpath = '<?php echo $modpath ?>';
-    </script>
-    <?php
-    
-    $cls = new cls($guid, $connection2);
-    $cls->modpath = $modpath;
-    
-    $cls->mainform();
-
-    $form = Form::create('rollgroup',$gibbon->session->get('absoluteURL') . '/index.php','GET');
+    $form = Form::create('rollgroup',$gibbon->session->get('absoluteURL') . '/index.php?q=/modules/House Points/class_view.php','POST');
     
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->addHiddenValue('q',$gibbon->session->get('address'));
+
     $row = $form->addRow();
         $row->addLabel('rollGroupID',__('Select Class'));
-        $row->addSelectRollGroup('rollGroupID',$_GET['gibbonSchoolYearID'] ?? $gibbon->session->get('gibbonSchoolYearID'));
+        $row->addSelectRollGroup('rollGroupID',$gibbonYearId);
     
         
     $form->addRow()->addSubmit();
@@ -46,10 +36,9 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/class_view.php
     $hpGateway = $container->get(HousePointsGateway::class);
     $criteria = $hpGateway
         ->newQueryCriteria()
-        ->filterBy('rollGroupID',$_GET['rollGroupID'] ?? '' == '' ? '': $_GET['rollGroupID'])
-        ->fromPOST();
+        ->filterBy('rollGroupID',$_POST['rollGroupID'] ?? '');
 
-    $hp = $hpGateway->queryStudents($criteria,$_GET['gibbonSchoolYearID'] ?? $gibbon->session->get('gibbonSchoolYearID'));
+    $hp = $hpGateway->queryStudentPoints($criteria,$gibbonYearId);
 
     $table = DataTable::createPaginated('classpoints',$criteria);
     $table->addColumn('student','Name')
@@ -58,6 +47,4 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/class_view.php
     $table->addColumn('house','House');
 
     echo $table->render($hp);
-
-
 }

@@ -18,24 +18,13 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/points_manage.
     $modpath =  "./modules/".$_SESSION[$guid]["module"];
     include $modpath."/moduleFunctions.php";
     include $modpath."/manage_function.php";
-   
-    ?>
-    <script>
-        var modpath = '<?php echo $modpath ?>';
-    </script>
-    <?php
-    
-    $man = new man($guid, $connection2);
-    $man->modpath = $modpath;
-    
-    $man->mainform();
 
     $form = Form::create('student',$gibbon->session->get('absoluteURL') . '/index.php','GET');
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->addHiddenValue('q','/modules/House Points/student_view.php');
     $row = $form->addRow();
-        $row->addLabel('selectStudent',__('Select Student'));
-        $row->addSelectStudent('selectStudent',$_GET['gibbonSchoolYearID'] ?? $gibbon->session->get('gibbonSchoolYearID',''));
+        $row->addLabel('studentID',__('Select Student'));
+        $row->addSelectStudent('studentID',$_GET['gibbonSchoolYearID'] ?? $gibbon->session->get('gibbonSchoolYearID',''));
     $form->addRow()->addSubmit();
     echo $form->getOutput();
 
@@ -43,8 +32,8 @@ if (isActionAccessible($guid, $connection2,"/modules/House Points/points_manage.
     $form->setFactory(DatabaseFormFactory::create($pdo));
     $form->addHiddenValue('q','/modules/House Points/house_view.php');
     $row = $form->addRow();
-        $row->addLabel('selectHouse',__('Select House'));
-        $row->addSelectHouse('selectHouse');
+        $row->addLabel('houseID',__('Select House'));
+        $row->addSelectHouse('houseID');
     $form->addRow()->addSubmit();
     echo $form->getOutput();
 }

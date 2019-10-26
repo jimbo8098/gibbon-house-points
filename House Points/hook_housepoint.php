@@ -8,6 +8,7 @@ if (isActionAccessible($guid, $connection2, '/modules/House Points/overall.php')
 
 } else {
 */
+
     $yearID = $_SESSION[$guid]['gibbonSchoolYearID'];
     $pointsList = readPointsList($connection2, $yearID);
     

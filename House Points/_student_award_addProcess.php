@@ -42,18 +42,5 @@ else
     header("Location: {$URL}");
     exit;
 }
-//Write to database
-/*
-try {
-    $data = array('gibbonPersonID' => $gibbonPersonID, 'gibbonSchoolYearID' => $gibbonSchoolYearID, 'gibbonYearGroupID' => $gibbonYearGroupID, 'gibbonRollGroupID' => $gibbonRollGroupID, 'rollOrder' => $rollOrder);
-    $sql = 'INSERT INTO gibbonStudentEnrolment SET gibbonPersonID=:gibbonPersonID, gibbonSchoolYearID=:gibbonSchoolYearID, gibbonYearGroupID=:gibbonYearGroupID, gibbonRollGroupID=:gibbonRollGroupID, rollOrder=:rollOrder';
-    $result = $connection2->prepare($sql);
-    $result->execute($data);
-} catch (PDOException $e) {
-    $URL .= '&return=error2';
-    header("Location: {$URL}");
-    exit;
-}
-*/
 
 ?>

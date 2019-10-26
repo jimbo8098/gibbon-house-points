@@ -30,40 +30,47 @@ $url="http://rapid36.com" ;
 //Module tables
 $moduleTables[0] = "
     CREATE TABLE hpCategory (
-    categoryID INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    categoryName VARCHAR(45) NOT NULL,
-    categoryOrder TINYINT(4) UNSIGNED NOT NULL,
-    categoryType ENUM('House','Student') NOT NULL DEFAULT 'House',
-    categoryPresets TEXT NOT NULL,
-    PRIMARY KEY (categoryID)
+        categoryID INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        categoryName VARCHAR(45) NOT NULL,
+        categoryOrder TINYINT(4) UNSIGNED NOT NULL,
+        categoryType ENUM('House','Student') NOT NULL DEFAULT 'House',
+        PRIMARY KEY (categoryID)
     );";
     
 $moduleTables[1] = "
     CREATE TABLE hpPointStudent (
-    hpID INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-    studentID int(10) unsigned NOT NULL,
-    categoryID int(10) unsigned NOT NULL,
-    points INT(4) unsigned NOT NULL,
-    reason varchar(255) NOT NULL,
-    yearID int(10) unsigned NOT NULL,
-    awardedDate datetime NOT NULL,
-    awardedBy int(10) unsigned NOT NULL,
-    PRIMARY KEY (hpID)
+        hpID INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+        studentID int(10) unsigned NOT NULL,
+        categoryID int(10) unsigned NOT NULL,
+        points INT(4) unsigned NOT NULL,
+        reason varchar(255) NOT NULL,
+        yearID int(10) unsigned NOT NULL,
+        awardedDate datetime NOT NULL,
+        awardedBy int(10) unsigned NOT NULL,
+        PRIMARY KEY (hpID)
     );";
    
 $moduleTables[2] = "
     CREATE TABLE hpPointHouse (
-    hpID INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    houseID INT(10) UNSIGNED NOT NULL,
-    categoryID INT(10) UNSIGNED NOT NULL,
-    points INT(4) UNSIGNED NOT NULL,
-    reason VARCHAR(255) NULL,
-    yearID INT(10) UNSIGNED NOT NULL,
-    awardedDate DATETIME NOT NULL,
-    awardedBy INT(10) UNSIGNED NOT NULL,
-    PRIMARY KEY (hpID)
+        hpID INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        houseID INT(10) UNSIGNED NOT NULL,
+        categoryID INT(10) UNSIGNED NOT NULL,
+        points INT(4) UNSIGNED NOT NULL,
+        reason VARCHAR(255) NULL,
+        yearID INT(10) UNSIGNED NOT NULL,
+        awardedDate DATETIME NOT NULL,
+        awardedBy INT(10) UNSIGNED NOT NULL,
+        PRIMARY KEY (hpID)
     );";
 
+$moduleTables[3] = "
+    CREATE TABLE hpSubCategory (
+        subCategoryID INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        categoryID INT NOT NULL,
+        name VARCHAR(500) NOT NULL,
+        value INT NOT NULL,
+        PRIMARY KEY (subCategoryID)
+    );";
 //Action rows
 // for admin and SLT only
 $actionRows[0]["name"]="Categories" ;

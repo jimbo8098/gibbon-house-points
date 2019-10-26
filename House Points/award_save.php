@@ -8,8 +8,8 @@ $mode = $_GET['mode'] ?? "";
 $houseID = $_GET['houseID'] ?? 0;
 $teacherID = $_GET['teacherID'] ?? 0;
 $studentID = $_GET['studentID'] ?? 0;
-$categoryID = $_GET['categoryID'] ?? 0;
-$points = $_GET['points'] ?? 0;
+$subCategoryID = $_GET['subCategoryID'] ?? 0;
+$points = ($_GET['points'] ?? 0) * 1;
 $reason = $_GET['reason'] ?? "";
 $yearID = $_SESSION[$guid]['gibbonSchoolYearID'] ?? 0;
 $status = "";
@@ -24,19 +24,30 @@ switch($mode)
     default: $status = "Please select an award mode"; break;
 }
 
-if ($categoryID == 0) $status = "Please select a category";
+if ($categoryID == 0 && $subCategoryID == 0) $status = "Please select a category";
 if (empty($reason)) $status = "Please provide a detailed reason";
-if ($points == 0) $status = "Please enter a valid point value";
-if ($highestAction != 'Award student points_unlimited') {
-    if ($points<1 || $points>20) {
-        $status = "Please award between 1 and 20 points<br />"; 
+$unlimitedPoints = ($highestAction == 'Award student points_unlimited');
+
+if (($points * 1) == 0){
+    if($subCategoryID == null) $status = "Please enter a valid point value";
+    else {
+        $stmnt = $connection2->prepare("SELECT value FROM hpSubCategory WHERE subCategoryID = :subCategoryID");
+        $stmnt->execute([
+            'subCategoryID' => $subCategoryID
+        ]);
+        $res = $stmnt->fetchAll();
+        $points = $res[0]['value'];        
     }
+}
+else
+{
+    if(!$unlimitedPoints) $status = "You don't have permission to add a custom number of points";
 }
 //If an error occurs, don't continue
 if($status != "") header("Location: " .$gibbon->session->get('absoluteURL') . "?q=". $returnTo . "&result=0&status=" . $status);
 
 $data = array(
-    'categoryID' => $categoryID,
+    'subCategoryID' => $subCategoryID,
     'points' => $points,
     'reason' => $reason,
     'yearID' => $_SESSION[$guid]['gibbonSchoolYearID'],
@@ -50,13 +61,15 @@ switch($mode)
     case "student":
         $data['studentID'] = $studentID;
         $sql = "INSERT INTO hpPointStudent
-            SET studentID = :studentID,
-            categoryID = :categoryID,
-            points = :points,
-            reason = :reason,
-            yearID = :yearID,
-            awardedDate = :awardedDate,
-            awardedBy = :awardedBy";
+            SET 
+                studentID = :studentID,
+                subCategoryID = :subCategoryID,
+                points = :points,
+                reason = :reason,
+                yearID = :yearID,
+                awardedDate = :awardedDate,
+                awardedBy = :awardedBy
+            ;";
         break;
 
     case "house":
@@ -64,7 +77,7 @@ switch($mode)
         $sql = "INSERT INTO hpPointHouse 
             SET 
                 houseID = :houseID,
-                categoryID = :categoryID,
+                subCategoryID = :subCategoryID,
                 points = :points,
                 reason = :reason,
                 yearID = :yearID,
